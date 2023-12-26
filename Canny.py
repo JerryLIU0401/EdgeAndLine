@@ -16,14 +16,16 @@ def filter2D(image, kernel):
     return result
 
 
-def nms(dst):
+def nms(dst, angle):
     height, width = dst.shape[:2]
     result = np.zeros((height, width), dtype=np.int32)
-    angle = dst * 180. / np.pi
+    # angle = dst * 180. / np.pi
     for i in range(1, height - 1):
         for j in range(1, width - 1):
             v1 = 255
             v2 = 255
+            if angle[i, j] > 180:
+                angle[i, j] = angle[i, j] - 180
             if 67.5 > angle[i, j] >= 22.5:
                 # slash
                 v1 = dst[i + 1, j - 1]
@@ -133,7 +135,7 @@ class Canny(object):
         gradientMagnitude, gradientAngle = cv.cartToPolar(gradientX, gradientY, angleInDegrees=True)
 
         # cv.imshow("Gradient",gradientMagnitude.astype(np.uint8))
-        result = labelComponent(nms(gradientMagnitude), self.lowThreshold, self.highThreshold).astype(np.uint8)
+        result = labelComponent(nms(gradientMagnitude, gradientAngle), self.lowThreshold, self.highThreshold).astype(np.uint8)
 
         result = putSign(result)
 
