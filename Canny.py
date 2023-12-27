@@ -19,6 +19,7 @@ def filter2D(image, kernel):
 def nms(dst, angle):
     height, width = dst.shape[:2]
     result = np.zeros((height, width), dtype=np.int32)
+
     # angle = dst * 180. / np.pi
     for i in range(1, height - 1):
         for j in range(1, width - 1):
@@ -44,7 +45,7 @@ def nms(dst, angle):
                 v2 = dst[i, j - 1]
             # else:
             # print(angle[i, j])
-            if dst[i, j] <= v1 or dst[i, j] <= v2:
+            if dst[i, j] < v1 or dst[i, j] < v2:
                 result[i, j] = 0
             else:
                 result[i, j] = int(dst[i, j])
@@ -78,7 +79,7 @@ def doubleThreshold(src, lowThreshold=50, highThreshold=150):
 
 
 # 標記連通元件
-def labelComponent(src, lowThreshold=50, highThreshold=150):
+def labelComponent(src, lowThreshold=25, highThreshold=150):
     thesholdingSrc, binarySrc = doubleThreshold(src, lowThreshold, highThreshold)
     # cv.imshow("binary", binarySrc)
     col, row = src.shape[0:2]
@@ -127,15 +128,17 @@ class Canny(object):
         self.highThreshold = highThreshold
 
     def Canny(self, src):
-        blur = cv.GaussianBlur(src, (5, 5), 1.5)
+        blur = cv.GaussianBlur(src, (3, 3), 1.5)
 
         # 梯度向量
         gradientX = cv.Sobel(np.float32(blur), cv.CV_64F, 1, 0, 3)
         gradientY = cv.Sobel(np.float32(blur), cv.CV_64F, 0, 1, 3)
         gradientMagnitude, gradientAngle = cv.cartToPolar(gradientX, gradientY, angleInDegrees=True)
 
-        # cv.imshow("Gradient",gradientMagnitude.astype(np.uint8))
-        result = labelComponent(nms(gradientMagnitude, gradientAngle), self.lowThreshold, self.highThreshold).astype(np.uint8)
+        cv.imshow("m", gradientMagnitude.astype(np.uint8))
+        # cv.imshow('Gradient', nms(gradientMagnitude, gradientAngle).astype(np.uint8))
+        result = labelComponent(nms(gradientMagnitude, gradientAngle), self.lowThreshold, self.highThreshold).astype(
+            np.uint8)
 
         result = putSign(result)
 
